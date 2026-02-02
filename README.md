@@ -6,11 +6,11 @@ This project learns a probability density function (PDF) from NO₂ air-quality 
 
 ---
 
-## 🧠 Objective
+## Step 1 — Data Collection
 
-1. Transform the NO₂ feature using a non-linear function  
-2. Learn parameters of a Gaussian-shaped PDF  
-3. Estimate distribution parameters from real data
+- The NO₂ pollutant values are extracted from the dataset.
+- Missing values are removed to ensure reliable statistics.
+- Only valid numeric entries are used.
 
 ---
 
@@ -25,7 +25,7 @@ Feature used:
 
 ---
 
-## 🔢 Step-1: Non-Linear Transformation
+## 🔢 Step-2: Non-Linear Transformation
 
 Each NO₂ value (x) is transformed into (z):
 
@@ -45,11 +45,18 @@ b_r = 0.3 * ((r % 5) + 1)
 
 `r` = University roll number
 
+### Why this step?
+
+- Introduces controlled non-linearity
+- Makes each student’s dataset unique
+- Simulates feature engineering
+- Helps observe distributional changes
+
 ---
 
-## 📈 Step-2: PDF Learning
+## 📈 Step-3: Statistical Modeling
 
-We model:
+We assume the transformed data follows a Gaussian-like distribution:
 
 \[
 p^​(z)=c * exp(−λ * (z−μ)^2)
@@ -61,23 +68,41 @@ Parameters to learn:
 - λ (precision parameter)
 - c (normalization constant)
 
+This is equivalent to a normal distribution written in exponential form.
+
 ---
 
 ## 🧮 Parameter Estimation
 
 Using statistical estimation:
 
+### Mean (μ)
+
+Represents the center of the distribution.
+
 \[
 mu = mean(z)
 \]
+
+### Variance (σ²)
+
+Measures spread of data.
 
 \[
 var = var(z)
 \]
 
+### Precision (λ)
+
+Inverse spread measure.
+
 \[
 lambda_est = 1/(2*var)
 \]
+
+### Normalization Constant (c)
+
+Ensures total probability equals 1.
 
 \[
 c_est = sqrt(lambda_est/pi)
@@ -85,10 +110,40 @@ c_est = sqrt(lambda_est/pi)
 
 ---
 
-## ⚙️ Implementation
+# 📊 Result Table
 
-### Load Data
+| Parameter | Meaning | Estimated Value |
+|----------|--------|----------------|
+| μ | Mean of z | 25.809622897811263 |
+| Variance | Spread of z | 342.36339017375917 |
+| λ | Precision | 0.001460436525489001 |
+| c | Normalization constant | 0.021560876239314918 |
+
+---
+
+# 📈 Result Graph
+
+The result graph compares:
+
+1. Histogram of transformed data (z)
+2. Learned probability density function
+
+---
+
+## Graph Code
 
 ```python
-df = pd.read_csv("/kaggle/input/india-air-quality-data/data.csv",encoding="latin1")
-x = df["no2"].dropna().values
+z_range = np.linspace(min(z), max(z), 500)
+
+pdf = c_est * np.exp(-lambda_est * (z_range - mu_est)**2)
+
+plt.figure(figsize=(8,5))
+plt.hist(z, bins=40, density=True, alpha=0.5, label="Data Histogram")
+plt.plot(z_range, pdf, linewidth=2, label="Learned PDF")
+
+plt.xlabel("z values")
+plt.ylabel("Density")
+
+plt.title("Histogram vs Learned PDF")
+plt.legend()
+plt.show()
